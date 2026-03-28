@@ -1,0 +1,16 @@
+{
+  "name": "anduril-sim",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && cp -t dist index.html",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "avr8js": "file:../avr8js/dist/esm"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "vite": "^5.4.0"
+  }
+}
