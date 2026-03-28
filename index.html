@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emisar D3AA Simulator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #111;
+    color: #ccc;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  h1 { color: #888; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+
+  .main-layout {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  /* ---- Left: flashlight visual ---- */
+  .flashlight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    flex: 0 0 220px;
+  }
+
+  .led-housing {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #333 0%, #1a1a1a 60%, #111 100%);
+    border: 2px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  #main-led {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #fff 0%, #ffe8b0 30%, #ff9900 60%, transparent 100%);
+    opacity: 0;
+    /* transition: opacity 0.05s, box-shadow 0.05s; */
+  }
+
+  .aux-leds {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Two-concentric-circle aux LED: inner lights on dim, both on bright */
+  .aux-ring {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .aux-ring-outer {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #2a2a2a;
+    box-sizing: border-box;
+  }
+  .aux-ring-inner {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #1a1a1a;
+  }
+
+  /* Combined RGB indicator */
+  .aux-combined {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+
+  /* Button LED indicator */
+  .btn-led-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  #btn-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #222;
+    border: 1px solid #333;
+    /* transition: background 0.1s, box-shadow 0.1s; */
+  }
+
+  /* Physical switch button */
+  #switch-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 45% 35%, #4a4a4a, #222);
+    border: 3px solid #555;
+    cursor: pointer;
+    outline: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* transition: transform 0.05s, border-color 0.05s; */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  #switch-btn:active, #switch-btn.pressed {
+    transform: scale(0.93);
+    border-color: #888;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.05);
+  }
+
+  /* ---- Right: controls & info ---- */
+  .controls {
+    flex: 1;
+    min-width: 280px;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .panel h3 {
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .slider-row label {
+    flex: 0 0 80px;
+    color: #888;
+    font-size: 12px;
+  }
+  .slider-row input[type=range] {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #333;
+    border-radius: 2px;
+    outline: none;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #888;
+    cursor: pointer;
+  }
+  .slider-row input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #888;
+    cursor: pointer;
+    border: none;
+  }
+  .slider-row .val {
+    flex: 0 0 60px;
+    text-align: right;
+    color: #aaa;
+    font-size: 12px;
+  }
+
+  /* State table */
+  .state-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+  }
+  .state-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid #222;
+    padding: 2px 0;
+    font-size: 11px;
+  }
+  .state-row .k { color: #666; }
+  .state-row .v { color: #aaa; font-weight: bold; }
+  .state-row .v.bright { color: #ffcc44; }
+
+  /* EEPROM hex grid */
+  #eeprom-grid {
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 1px;
+    color: #444;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  #eeprom-grid span {
+    display: inline-block;
+    width: 22px;
+    text-align: center;
+    /* transition: color 0.3s, background 0.3s; */
+  }
+  #eeprom-grid span.changed {
+    color: #ffcc44;
+    background: rgba(255,200,50,0.1);
+  }
+  #eeprom-grid span.nonzero {
+    color: #88aacc;
+  }
+  .eeprom-addr {
+    color: #333;
+    display: inline-block;
+    width: 30px;
+    margin-right: 4px;
+  }
+
+  /* Shared button base */
+  .btn {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #aaa;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #888; color: #ccc; }
+
+  /* Firmware selector row */
+  .fw-select-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+    flex-wrap: wrap;
+  }
+  #fw-select {
+    flex: 1;
+    min-width: 140px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #aaa;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 2px 6px;
+    outline: none;
+  }
+  #fw-select:hover { border-color: #888; }
+  #fw-upload-btn, #fw-delete-btn { font-size: 12px; padding: 2px 8px; }
+  #fw-delete-btn { color: #c44; }
+  #fw-delete-btn:hover { border-color: #c44; }
+  #fw-file-input { display: none; }
+
+  /* Status bar */
+  #status-bar {
+    color: #444;
+    font-size: 11px;
+    text-align: center;
+    height: 16px;
+  }
+  #status-bar.ok  { color: #4a8; }
+  #status-bar.err { color: #c44; }
+
+  #eeprom-reset-btn {
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+<h1>Emisar D3AA &mdash; Simulator</h1>
+
+<div class="main-layout">
+  <!-- LEFT: Flashlight visual -->
+  <div class="flashlight">
+    <div class="led-housing">
+      <div id="main-led"></div>
+    </div>
+
+    <div class="aux-leds">
+      <div class="aux-ring" id="aux-r" title="Aux Red (PA3)">
+        <div class="aux-ring-outer"></div>
+        <div class="aux-ring-inner"></div>
+      </div>
+      <div class="aux-ring" id="aux-g" title="Aux Green (PA2)">
+        <div class="aux-ring-outer"></div>
+        <div class="aux-ring-inner"></div>
+      </div>
+      <div class="aux-ring" id="aux-b" title="Aux Blue (PA0)">
+        <div class="aux-ring-outer"></div>
+        <div class="aux-ring-inner"></div>
+      </div>
+      &nbsp;
+      <div id="aux-rgb" class="aux-combined" title="Combined AUX RGB"></div>
+      &nbsp;
+      <div class="btn-led-wrap">
+        <div id="btn-led" title="Button LED (PA7)"></div>
+      </div>
+    </div>
+
+    <button id="switch-btn" title="E-switch (PA4, active-low)">SWITCH</button>
+
+    <div id="status-bar">Loading...</div>
+  </div>
+
+  <!-- RIGHT: Controls & info -->
+  <div class="controls">
+
+    <!-- Firmware selector -->
+    <div class="panel">
+      <h3>Firmware</h3>
+      <div class="fw-select-row">
+        <select id="fw-select"></select>
+        <button id="fw-upload-btn" class="btn" title="Upload custom .hex firmware">Upload</button>
+        <button id="fw-delete-btn" class="btn" title="Delete selected custom firmware">Del</button>
+      </div>
+      <input type="file" id="fw-file-input" accept=".hex,.txt">
+    </div>
+
+    <!-- Sliders -->
+    <div class="panel">
+      <h3>Inputs</h3>
+      <div class="slider-row">
+        <label>Battery</label>
+        <input type="range" id="voltage-slider" min="125" max="210" value="200" step="1">
+        <span class="val" id="voltage-val">4.00 V</span>
+      </div>
+      <div class="slider-row">
+        <label>Temperature</label>
+        <input type="range" id="temp-slider" min="0" max="80" value="25" step="1">
+        <span class="val" id="temp-val">25 °C</span>
+      </div>
+    </div>
+
+    <!-- Firmware state -->
+    <div class="panel">
+      <h3>Firmware State</h3>
+      <div class="state-grid">
+        <div class="state-row"><span class="k">Level</span><span class="v" id="s-level">—</span></div>
+        <div class="state-row"><span class="k">DAC</span><span class="v" id="s-dac">—</span></div>
+        <div class="state-row"><span class="k">VREF</span><span class="v" id="s-vref">—</span></div>
+        <div class="state-row" id="row-chan"><span class="k">Channel</span><span class="v" id="s-chan">—</span></div>
+        <div class="state-row"><span class="k">Voltage</span><span class="v" id="s-volt">—</span></div>
+        <div class="state-row"><span class="k">Temp</span><span class="v" id="s-temp">—</span></div>
+        <div class="state-row"><span class="k">HDR</span><span class="v" id="s-hdr">—</span></div>
+        <div class="state-row"><span class="k">Boost</span><span class="v" id="s-boost">—</span></div>
+        <div class="state-row"><span class="k">NFET</span><span class="v" id="s-nfet">—</span></div>
+        <div class="state-row"><span class="k">Ticks</span><span class="v" id="s-tick">—</span></div>
+      </div>
+    </div>
+
+    <!-- EEPROM -->
+    <div class="panel">
+      <h3>EEPROM (256 bytes) <button id="eeprom-reset-btn" class="btn">Reset</button></h3>
+      <div id="eeprom-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { D3AA } from './sim.js';
+
+let sim = null;
+let prevEeprom = new Uint8Array(256).fill(0);
+
+// EEPROM localStorage persistence
+const EEPROM_KEY = 'd3aa-eeprom';
+const CUSTOM_FW_KEY = 'd3aa-custom-fw';
+const BUILTIN_FW_LABEL = 'Anduril (built-in)';
+let builtinHex = null;
+let activeFwLabel = BUILTIN_FW_LABEL;
+let lastSavedEeprom = new Uint8Array(256).fill(0xFF);
+let eepromSaveTimer = null;
+
+const statusBar = document.getElementById('status-bar');
+
+const CPU_FREQ = 12_000_000;
+
+// Pre-cached DOM refs for the poll loop
+const auxRings = {
+  r: { outer: document.querySelector('#aux-r .aux-ring-outer'), inner: document.querySelector('#aux-r .aux-ring-inner') },
+  g: { outer: document.querySelector('#aux-g .aux-ring-outer'), inner: document.querySelector('#aux-g .aux-ring-inner') },
+  b: { outer: document.querySelector('#aux-b .aux-ring-outer'), inner: document.querySelector('#aux-b .aux-ring-inner') },
+};
+const elAuxRGB = document.getElementById('aux-rgb');
+const elBtnLed = document.getElementById('btn-led');
+
+// VREF index → voltage string
+const VREF_TABLE = ['1.024V', '2.048V', '4.096V', '2.500V'];
+
+let t0 = Date.now();
+
+// ---- LED rendering helpers ----
+function setAuxRing(ring, state, r, g, b) {
+  if (state === 0) {
+    ring.outer.style.borderColor = '#2a2a2a';
+    ring.outer.style.boxShadow   = 'none';
+    ring.inner.style.background  = '#1a1a1a';
+    ring.inner.style.boxShadow   = 'none';
+  } else if (state === 1) {
+    ring.outer.style.borderColor = '#2a2a2a';
+    ring.outer.style.boxShadow   = 'none';
+    ring.inner.style.background  = `rgb(${r},${g},${b})`;
+    ring.inner.style.boxShadow   = `0 0 4px 1px rgba(${r},${g},${b},0.5)`;
+  } else {
+    ring.outer.style.borderColor = `rgb(${r},${g},${b})`;
+    ring.outer.style.boxShadow   = `0 0 6px 2px rgba(${r},${g},${b},0.4)`;
+    ring.inner.style.background  = `rgb(${r},${g},${b})`;
+    ring.inner.style.boxShadow   = `0 0 5px 1px rgba(${r},${g},${b},0.7)`;
+  }
+}
+
+function setAuxLed(el, state, r, g, b) {
+  if (state === 0) {
+    el.style.background = '#1a1a1a';
+    el.style.boxShadow  = 'none';
+  } else {
+    const op   = state === 1 ? 0.5 : 1.0;
+    const glow = state === 2 ? `, 0 0 8px 2px rgba(${r},${g},${b},0.7)` : '';
+    el.style.background = `rgba(${r},${g},${b},${op})`;
+    el.style.boxShadow  = `inset 0 0 2px rgba(255,255,255,0.3)${glow}`;
+  }
+}
+
+function setRgbCombined(el, stateR, stateG, stateB) {
+  const sc = [0, 0.25, 1.0];
+  const r = Math.round(sc[Math.min(stateR, 2)] * 255);
+  const g = Math.round(sc[Math.min(stateG, 2)] * 220);
+  const b = Math.round(sc[Math.min(stateB, 2)] * 255);
+  if (r === 0 && g === 0 && b === 0) {
+    el.style.background = '#1a1a1a';
+    el.style.boxShadow  = 'none';
+  } else {
+    const lum = Math.max(r / 255, g / 220, b / 255);
+    el.style.background = `rgb(${r},${g},${b})`;
+    el.style.boxShadow  = `0 0 ${Math.round(4 + 8 * lum)}px rgba(${r},${g},${b},${(0.5 + 0.3 * lum).toFixed(2)})`;
+  }
+}
+
+function setMainLed(level, dac) {
+  const led = document.getElementById('main-led');
+  if (level === 0) {
+    led.style.opacity   = '0';
+    led.style.boxShadow = 'none';
+    return;
+  }
+  const t = Math.pow(level / 150, 0.35);
+  const warmness = Math.max(0, 1 - t * 1.2);
+  const r = 255;
+  const g = Math.round(255 - warmness * 60);
+  const b = Math.round(255 - warmness * 180);
+  const glowRad  = Math.round(20  + 80 * t);
+  const glowSprd = Math.round(4   + 30 * t);
+  const outerRad = Math.round(40  + 120 * t);
+  const glowAlpha= (0.3 + 0.65 * t).toFixed(2);
+
+  led.style.opacity    = (0.3 + 0.7 * t).toFixed(2);
+  led.style.boxShadow  =
+    `0 0 ${glowRad}px ${glowSprd}px rgba(${r},${g},${b},${glowAlpha}),` +
+    `0 0 ${outerRad}px rgba(${r},${g},${b},${(glowAlpha * 0.4).toFixed(2)})`;
+}
+
+// ---- EEPROM rendering ----
+const eepromEl = document.getElementById('eeprom-grid');
+const eepromSpans = [];
+for (let row = 0; row < 16; row++) {
+  const addrEl = document.createElement('span');
+  addrEl.className = 'eeprom-addr';
+  addrEl.textContent = (row * 16).toString(16).padStart(2, '0').toUpperCase() + ':';
+  eepromEl.appendChild(addrEl);
+  for (let col = 0; col < 16; col++) {
+    const sp = document.createElement('span');
+    sp.textContent = '00';
+    eepromEl.appendChild(sp);
+    eepromSpans.push(sp);
+  }
+  eepromEl.appendChild(document.createElement('br'));
+}
+
+function updateEeprom(eepromData) {
+  for (let i = 0; i < 256; i++) {
+    const v = eepromData[i];
+    const sp = eepromSpans[i];
+    const hex = v.toString(16).padStart(2, '0').toUpperCase();
+    if (sp.textContent !== hex) sp.textContent = hex;
+    const changed = v !== prevEeprom[i];
+    const nz      = v !== 0x00 && v !== 0xFF;
+    if (changed) {
+      sp.className = 'changed';
+    } else if (nz) {
+      sp.className = 'nonzero';
+    } else {
+      sp.className = '';
+    }
+  }
+  prevEeprom.set(eepromData);
+}
+
+// ---- RAF polling loop ----
+function poll() {
+  requestAnimationFrame(poll);
+  if (!sim) return;
+
+  // catch up simulator
+  const dt = Date.now() - t0;
+  const cycles = CPU_FREQ / 1000 * dt;
+  sim.step(cycles - sim.getState().cycles);
+
+  // Read state from emulator
+  const st = sim.getState();
+
+  // Update main LED
+  setMainLed(st.level, st.dac);
+
+  // Aux LEDs: R=PA3, G=PA2, B=PA0
+  setAuxRing(auxRings.r, st.auxR, 255, 50,  50);
+  setAuxRing(auxRings.g, st.auxG, 50,  220, 80);
+  setAuxRing(auxRings.b, st.auxB, 80,  130, 255);
+  setRgbCombined(elAuxRGB, st.auxR, st.auxG, st.auxB);
+
+  // Button LED: white
+  setAuxLed(elBtnLed, st.btnLed, 220, 220, 220);
+
+  // State panel
+  const voltV  = st.voltage ? (st.voltage / 50).toFixed(2) + ' V' : '—';
+  const tempC  = st.tempC + ' °C';
+  const vrefStr = VREF_TABLE[st.vref] || st.vref;
+
+  document.getElementById('s-level').textContent  = st.level;
+  document.getElementById('s-level').className    = 'v' + (st.level > 0 ? ' bright' : '');
+  document.getElementById('s-dac').textContent    = st.dac;
+  document.getElementById('s-vref').textContent   = vrefStr;
+  document.getElementById('s-chan').textContent   = st.channel;
+  document.getElementById('s-volt').textContent   = voltV;
+  document.getElementById('s-temp').textContent   = tempC;
+  document.getElementById('s-hdr').textContent    = st.hdr ? 'HI' : 'lo';
+  document.getElementById('s-boost').textContent  = st.boost ? 'ON' : 'off';
+  document.getElementById('s-nfet').textContent   = st.nfet ? 'ON' : 'off';
+  document.getElementById('s-tick').textContent   = st.tickCount;
+
+  // EEPROM
+  updateEeprom(st.eeprom);
+
+  // Persist EEPROM to localStorage (throttled to once per second)
+  if (!eepromSaveTimer) {
+    for (let i = 0; i < 256; i++) {
+      if (st.eeprom[i] !== lastSavedEeprom[i]) {
+        const snapshot = new Uint8Array(st.eeprom);
+        lastSavedEeprom.set(snapshot);
+        eepromSaveTimer = setTimeout(() => { eepromSaveTimer = null; }, 1000);
+        localStorage.setItem(EEPROM_KEY, JSON.stringify(Array.from(snapshot)));
+        break;
+      }
+    }
+  }
+}
+
+// ---- Button input (mouse + touch) ----
+const switchBtn = document.getElementById('switch-btn');
+
+function onPress(e) {
+  e.preventDefault();
+  if (!sim) return;
+  switchBtn.classList.add('pressed');
+  sim.buttonPress();
+}
+function onRelease(e) {
+  e.preventDefault();
+  if (!sim) return;
+  switchBtn.classList.remove('pressed');
+  sim.buttonRelease();
+}
+
+switchBtn.addEventListener('mousedown',  onPress,   { passive: false });
+switchBtn.addEventListener('mouseup',    onRelease, { passive: false });
+switchBtn.addEventListener('mouseleave', onRelease, { passive: false });
+switchBtn.addEventListener('touchstart', onPress,   { passive: false });
+switchBtn.addEventListener('touchend',   onRelease, { passive: false });
+switchBtn.addEventListener('touchcancel',onRelease, { passive: false });
+
+// ---- Space bar actuates switch ----
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !e.repeat) { e.preventDefault(); onPress(e); }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'Space') { e.preventDefault(); onRelease(e); }
+});
+
+// ---- Slider inputs ----
+const voltageSlider = document.getElementById('voltage-slider');
+const voltageVal    = document.getElementById('voltage-val');
+const tempSlider    = document.getElementById('temp-slider');
+const tempVal       = document.getElementById('temp-val');
+
+voltageSlider.addEventListener('input', () => {
+  const vbat50 = parseInt(voltageSlider.value);
+  voltageVal.textContent = (vbat50 / 50).toFixed(2) + ' V';
+  if (sim) sim.setVoltage(vbat50);
+});
+
+tempSlider.addEventListener('input', () => {
+  const c = parseInt(tempSlider.value);
+  tempVal.textContent = c + ' °C';
+  if (sim) sim.setTemperature(c);
+});
+
+// ---- Firmware management ----
+const fwSelect = document.getElementById('fw-select');
+const fwUploadBtn = document.getElementById('fw-upload-btn');
+const fwDeleteBtn = document.getElementById('fw-delete-btn');
+const fwFileInput = document.getElementById('fw-file-input');
+
+function loadCustomFirmwares() {
+  try {
+    const data = JSON.parse(localStorage.getItem(CUSTOM_FW_KEY));
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCustomFirmwares(list) {
+  localStorage.setItem(CUSTOM_FW_KEY, JSON.stringify(list));
+}
+
+function populateFwSelect() {
+  fwSelect.innerHTML = '';
+  const builtinOpt = document.createElement('option');
+  builtinOpt.value = '__builtin__';
+  builtinOpt.textContent = BUILTIN_FW_LABEL;
+  fwSelect.appendChild(builtinOpt);
+  const customs = loadCustomFirmwares();
+  customs.forEach((fw, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = fw.label;
+    fwSelect.appendChild(opt);
+  });
+  // Restore selection to active firmware
+  if (activeFwLabel === BUILTIN_FW_LABEL) {
+    fwSelect.value = '__builtin__';
+  } else {
+    const idx = customs.findIndex(fw => fw.label === activeFwLabel);
+    if (idx >= 0) fwSelect.value = String(idx);
+  }
+}
+
+function switchFirmware(hexData, label) {
+  try {
+    // Snapshot current EEPROM and persist
+    if (sim) {
+      const snap = sim.getEepromSnapshot();
+      lastSavedEeprom.set(snap);
+      localStorage.setItem(EEPROM_KEY, JSON.stringify(Array.from(snap)));
+    }
+    sim = null;
+
+    const runner = new D3AA();
+    runner.loadProgram(hexData);
+    t0 = Date.now();
+
+    // Restore EEPROM
+    const savedEeprom = localStorage.getItem(EEPROM_KEY);
+    if (savedEeprom) {
+      try {
+        const bytes = new Uint8Array(JSON.parse(savedEeprom));
+        runner.loadEeprom(bytes);
+        lastSavedEeprom.set(bytes.subarray(0, 256));
+      } catch (e) {
+        console.warn('Failed to restore EEPROM:', e);
+      }
+    }
+
+    // Push slider values
+    runner.setVoltage(parseInt(voltageSlider.value));
+    runner.setTemperature(parseInt(tempSlider.value));
+
+    sim = runner;
+    activeFwLabel = label;
+    statusBar.textContent = 'Running: ' + label;
+    statusBar.className = 'ok';
+  } catch (err) {
+    statusBar.textContent = 'Error: ' + err.message;
+    statusBar.className = 'err';
+    console.error(err);
+  }
+}
+
+// Upload button triggers hidden file input
+fwUploadBtn.addEventListener('click', () => fwFileInput.click());
+
+// File input change: read hex, prompt for label, store and switch
+fwFileInput.addEventListener('change', () => {
+  const file = fwFileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const hexText = reader.result;
+    const defaultLabel = file.name.replace(/\.[^.]+$/, '');
+    const label = prompt('Label for this firmware:', defaultLabel);
+    if (!label) { fwFileInput.value = ''; return; }
+    const customs = loadCustomFirmwares();
+    customs.push({ label, hex: hexText });
+    saveCustomFirmwares(customs);
+    populateFwSelect();
+    fwSelect.value = String(customs.length - 1);
+    switchFirmware(hexText, label);
+    fwFileInput.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// Select change: switch firmware
+fwSelect.addEventListener('change', () => {
+  const val = fwSelect.value;
+  if (val === '__builtin__') {
+    if (builtinHex) {
+      switchFirmware(builtinHex, BUILTIN_FW_LABEL);
+    } else {
+      statusBar.textContent = 'Loading built-in firmware...';
+      statusBar.className = '';
+      fetch('./anduril.hank-emisar-d3aa.hex')
+        .then(r => { if (!r.ok) throw new Error('Fetch failed: ' + r.status); return r.text(); })
+        .then(hex => { builtinHex = hex; switchFirmware(hex, BUILTIN_FW_LABEL); })
+        .catch(err => { statusBar.textContent = 'Error: ' + err.message; statusBar.className = 'err'; });
+    }
+  } else {
+    const customs = loadCustomFirmwares();
+    const idx = parseInt(val);
+    const fw = customs[idx];
+    if (fw) switchFirmware(fw.hex, fw.label);
+  }
+});
+
+// Delete button: remove selected custom firmware
+fwDeleteBtn.addEventListener('click', () => {
+  const val = fwSelect.value;
+  if (val === '__builtin__') return;
+  const customs = loadCustomFirmwares();
+  const idx = parseInt(val);
+  const fw = customs[idx];
+  if (!fw) return;
+  if (!confirm('Delete "' + fw.label + '"?')) return;
+  const wasActive = (fw.label === activeFwLabel);
+  customs.splice(idx, 1);
+  saveCustomFirmwares(customs);
+  populateFwSelect();
+  if (wasActive) {
+    fwSelect.value = '__builtin__';
+    if (builtinHex) {
+      switchFirmware(builtinHex, BUILTIN_FW_LABEL);
+    } else {
+      fetch('./anduril.hank-emisar-d3aa.hex')
+        .then(r => { if (!r.ok) throw new Error('Fetch failed: ' + r.status); return r.text(); })
+        .then(hex => { builtinHex = hex; switchFirmware(hex, BUILTIN_FW_LABEL); })
+        .catch(err => { statusBar.textContent = 'Error: ' + err.message; statusBar.className = 'err'; });
+    }
+  }
+});
+
+// ---- EEPROM reset button ----
+document.getElementById('eeprom-reset-btn').addEventListener('click', () => {
+  if (!sim) return;
+  const erased = new Uint8Array(256).fill(0xFF);
+  sim.loadEeprom(erased);
+  lastSavedEeprom.set(erased);
+  localStorage.removeItem(EEPROM_KEY);
+});
+
+// ---- Init AVR simulator ----
+statusBar.textContent = 'Loading firmware...';
+statusBar.className   = '';
+
+try {
+  const hexResponse = await fetch('./anduril.hank-emisar-d3aa.hex');
+  if (!hexResponse.ok) throw new Error('Failed to fetch hex file: ' + hexResponse.status);
+  const hexData = await hexResponse.text();
+  builtinHex = hexData;
+
+  sim = new D3AA();
+  sim.loadProgram(hexData);
+
+  // Restore EEPROM from localStorage if available
+  const savedEeprom = localStorage.getItem(EEPROM_KEY);
+  if (savedEeprom) {
+    try {
+      const bytes = new Uint8Array(JSON.parse(savedEeprom));
+      sim.loadEeprom(bytes);
+      lastSavedEeprom.set(bytes.subarray(0, 256));
+    } catch (e) {
+      console.warn('Failed to load saved EEPROM:', e);
+    }
+  }
+
+  // Push initial slider values
+  sim.setVoltage(parseInt(voltageSlider.value));
+  sim.setTemperature(parseInt(tempSlider.value));
+
+  populateFwSelect();
+
+  statusBar.textContent = 'Running: ' + BUILTIN_FW_LABEL;
+  statusBar.className   = 'ok';
+
+  
+  t0 = Date.now();
+
+  // Start rendering
+  requestAnimationFrame(poll);
+} catch (err) {
+  statusBar.textContent = 'Error: ' + err;
+  statusBar.className   = 'err';
+  console.error(err);
+}
+</script>
+</body>
+</html>
