@@ -2,3 +2,7 @@
 	path = avr8js
 	url = ../avr8js
 	branch = avr32dd20
+[submodule "anduril"]
+	path = anduril
+	url = ../anduril
+	branch = trunk
