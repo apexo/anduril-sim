@@ -546,15 +546,23 @@ function updateEeprom(eepromData) {
   prevEeprom.set(eepromData);
 }
 
-// ---- RAF polling loop ----
 function poll() {
   requestAnimationFrame(poll);
   if (!sim) return;
 
   // catch up simulator
-  const dt = Date.now() - t0;
-  const cycles = CPU_FREQ / 1000 * dt;
-  sim.step(cycles - sim.getState().cycles);
+  const tt = 1000 * sim.getState().cycles / CPU_FREQ;
+  let dt = Date.now() - t0 - tt;
+
+  if (dt < 0 || dt > 100) {
+    // handle backwards/forward time jumps to avoid freezing the sim or blocking the UI by simulating too much
+    const dt2 = Math.max(0, Math.min(100, dt));
+    console.log("timp jump", dt, dt2);
+    t0 += dt - dt2;
+    dt = dt2;
+  }
+
+  sim.step(Math.round(dt * CPU_FREQ / 1000));
 
   // Read state from emulator
   const st = sim.getState();
