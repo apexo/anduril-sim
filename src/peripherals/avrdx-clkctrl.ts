@@ -1,8 +1,8 @@
 // AVR-Dx CLKCTRL peripheral
 // Clock controller with CCP-protected writes.
 
-import { type CPU } from 'avr8js/cpu/cpu';
-import { type AVRDxCCP } from './avrdx-ccp';
+import type { CPU } from 'avr8js/cpu/cpu';
+import type { AVRDxCCP } from './avrdx-ccp';
 
 const MCLKCTRLA  = 0x00;
 const MCLKCTRLB  = 0x01;

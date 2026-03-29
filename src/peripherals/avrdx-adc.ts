@@ -1,8 +1,8 @@
 // AVR-Dx ADC0 peripheral
 // 12-bit ADC with accumulation, free-running mode, and multiple input sources.
 
-import { type CPU, type AVRInterruptConfig } from 'avr8js/cpu/cpu';
-import { type AVRDxVREF } from './avrdx-vref';
+import type { CPU, AVRInterruptConfig } from 'avr8js/cpu/cpu';
+import type { AVRDxVREF } from './avrdx-vref';
 
 const CTRLA    = 0x0000;
 const CTRLB    = 0x0001;

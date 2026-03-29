@@ -1,8 +1,8 @@
 // AVR-Dx RSTCTRL - Reset Controller
 // Handles software reset and reset flags.
 
-import { type CPU } from 'avr8js/cpu/cpu';
-import { type AVRDxCCP } from './avrdx-ccp';
+import type { CPU } from 'avr8js/cpu/cpu';
+import type { AVRDxCCP } from './avrdx-ccp';
 
 const RSTFR = 0;
 const SWRR  = 1;
