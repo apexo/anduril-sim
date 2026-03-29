@@ -80,10 +80,10 @@ export interface D3AAState {
   hdr: number;         // HDR FET on/off
   boost: number;       // boost enable on/off
   nfet: number;        // IN- NFET on/off
-  auxR: number;        // aux red: 0=off, 1=on
-  auxG: number;        // aux green: 0=off, 1=on
-  auxB: number;        // aux blue: 0=off, 1=on
-  btnLed: number;      // button LED: 0=off, 1=on
+  auxR: number;        // aux red: 0=off, 1=low, 2=high
+  auxG: number;        // aux green: 0=off, 1=low, 2=high
+  auxB: number;        // aux blue: 0=off, 1=low, 2=high
+  btnLed: number;      // button LED: 0=off, 1=low, 2=high
   voltage: number;     // battery voltage as vbat*50
   tempC: number;       // temperature in Celsius
   channel: number;     // (not directly readable from hardware, default 0)
