@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build && cp -t dist index.html",
+    "build": "(cd anduril && [ -d arch/dfp ] || make dfp && make hank-emisar-d3aa) && vite build && cp -t dist index.html anduril/hex/anduril.hank-emisar-d3aa.hex",
     "dev": "vite build --watch"
   },
   "dependencies": {
