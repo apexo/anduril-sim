@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "(cd anduril && [ -d arch/dfp ] || make dfp && make hank-emisar-d3aa) && vite build && cp -t dist index.html anduril/hex/anduril.hank-emisar-d3aa.hex",
+    "serve": "npm run build && node server.mjs",
     "dev": "vite build --watch"
   },
   "dependencies": {
