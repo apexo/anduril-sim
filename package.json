@@ -7,7 +7,7 @@
     "dev": "vite build --watch"
   },
   "dependencies": {
-    "avr8js": "file:../avr8js/dist/esm"
+    "avr8js": "file:./avr8js/src"
   },
   "devDependencies": {
     "@types/node": "^24",

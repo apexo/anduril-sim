@@ -1,0 +1,4 @@
+[submodule "avr8js"]
+	path = avr8js
+	url = ../avr8js
+	branch = avr32dd20
