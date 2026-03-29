@@ -16,7 +16,7 @@ const PERIOD_gm   = 0x78; // bits [6:3]
 
 // PIT period to number of 32768Hz clock cycles
 // PERIOD field is bits [6:3] of CTRLA
-export const PERIOD_CYCLES = [
+const PERIOD_CYCLES = [
   0,      // 0x00: OFF
   4,      // 0x01: CYC4
   8,      // 0x02: CYC8

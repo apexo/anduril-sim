@@ -26,7 +26,7 @@ import { AVRDxWDT } from '../peripherals/avrdx-wdt';
 // On AVR-Dx, data addresses 0x0000-0x001F are VPORTs (R0-R31 aren't memory-mapped).
 // This offset is added to all hardware data addresses so peripheral hooks
 // and data storage don't collide with the register file.
-export const DATA_MEMORY_OFFSET = 32;
+const DATA_MEMORY_OFFSET = 32;
 
 /*
  * memory layout
@@ -42,19 +42,19 @@ export const DATA_MEMORY_OFFSET = 32;
  * are only hooked into memory for certain CPUs
  */
 
-export const EEPROM_START = 0x1400 + DATA_MEMORY_OFFSET;
-export const EEPROM_SIZE = 256;
+// const EEPROM_START = 0x1400 + DATA_MEMORY_OFFSET;
+// const EEPROM_SIZE = 256;
 
-export const SRAM_START = 0x7000 + DATA_MEMORY_OFFSET;
-export const SRAM_SIZE = 0x1000;  // 4 KB
+const SRAM_START = 0x7000 + DATA_MEMORY_OFFSET;
+const SRAM_SIZE = 0x1000;  // 4 KB
 
-export const MAPPED_PROGMEM_START = 0x8000 + DATA_MEMORY_OFFSET;
-export const FLASH_SIZE = 0x8000;  // 32 KB
-export const FLASH_WORDS = FLASH_SIZE / 2;
+const MAPPED_PROGMEM_START = 0x8000 + DATA_MEMORY_OFFSET;
+const FLASH_SIZE = 0x8000;  // 32 KB
+const FLASH_WORDS = FLASH_SIZE / 2;
 
-export const CPU_DATA_SIZE = 0x10000 + DATA_MEMORY_OFFSET;
+const CPU_DATA_SIZE = 0x10000 + DATA_MEMORY_OFFSET;
 
-export const CPU_FREQ = 12_000_000;  // 12 MHz default clock
+const CPU_FREQ = 12_000_000;  // 12 MHz default clock
 
 // PORTA pins
 const SWITCH_PIN     = 4;  // PA4 - e-switch

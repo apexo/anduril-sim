@@ -4,9 +4,9 @@
 import { type CPU } from 'avr8js/cpu/cpu';
 import { type AVRDxCCP } from './avrdx-ccp';
 
-export const RSTFR = 0;
-export const SWRR  = 1;
-export const SWRST_bm = 0x01;
+const RSTFR = 0;
+const SWRR  = 1;
+const SWRST_bm = 0x01;
 
 export class AVRDxRSTCTRL {
   /** Set this callback to handle software resets */
