@@ -19,7 +19,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'avr8js': resolve(__dirname, '../avr8js/src'),
+      'avr8js': resolve(__dirname, 'avr8js/src'),
     },
   },
 });
