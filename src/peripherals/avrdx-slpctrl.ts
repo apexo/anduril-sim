@@ -29,7 +29,7 @@ export class AVRDxSLPCTRL {
 
     const nextEvent = (this.cpu as any).nextClockEvent;
     if (nextEvent) {
-      this.sleepUntil = Math.min(this.sleepUntil, nextEvent.cycles);
+      this.sleepUntil = nextEvent.cycles;
     }
   }
 }
