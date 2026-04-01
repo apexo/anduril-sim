@@ -169,17 +169,20 @@ export class D3AA {
   /** Run the CPU for the given number of cycles */
   step(cycles: number) {
     const target = this.cpu.cycles + cycles;
+
     while (this.cpu.cycles < target) {
+      this.cpu.tick();
+
       const before = this.cpu.cycles;
+      this.slpctrl.sleepUntil = 0;
       avrInstruction(this.cpu);
       const mult = this.clkctrl.cycleMultiplier;
       if (mult > 1) {
         this.cpu.cycles += (this.cpu.cycles - before) * (mult - 1);
       }
-      if (this.slpctrl.sleepUntil > this.cpu.cycles) {
+      if (this.slpctrl.sleepUntil > this.cpu.cycles && this.cpu.nextInterrupt < 0) {
         this.cpu.cycles = Math.min(this.slpctrl.sleepUntil, target);
       }
-      this.cpu.tick();
     }
   }
 
