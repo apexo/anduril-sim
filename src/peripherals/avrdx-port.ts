@@ -247,7 +247,7 @@ export class AVRDxPort {
     if (intFlags) {
       this.cpu.data[this.vbase + VPORT_INTFLAGS] |= intFlags;
       this.cpu.data[this.base + INTFLAGS] |= intFlags;
-      this.cpu.setInterruptFlag(this.irq);
+      this.cpu.queueInterrupt(this.irq);
     }
   }
 }
