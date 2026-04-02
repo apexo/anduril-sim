@@ -81,6 +81,12 @@ export class AVRDxADC {
       enableMask: ADC_RESRDY_bm,
     } as const;
 
+    cpu.writeHooks[base + CTRLA] = (value) => {
+      cpu.data[base + CTRLA] = value;
+      if (!(value & ADC_ENABLE_bm)) this.stop();
+      return true;
+    };
+
     // COMMAND register - writing STCONV starts a conversion
     cpu.writeHooks[base + COMMAND] = (value) => {
       cpu.data[base + COMMAND] = value;
@@ -113,6 +119,13 @@ export class AVRDxADC {
     cpu.writeHooks[base + RESH] = () => true;
   }
 
+  private stop() {
+    if (this.conversionCallback) {
+      this.cpu.clearClockEvent(this.conversionCallback);
+      this.conversionCallback = null;
+    }
+  }
+
   /** Set the voltage at the ADC pin (volts, after external divider).
    *  The ADC result is computed at conversion time from this voltage,
    *  the current VREF selection, and the accumulation count. */
@@ -140,9 +153,7 @@ export class AVRDxADC {
     const cpuCycles = adcCycles * prescDiv;
 
     // Schedule completion
-    if (this.conversionCallback) {
-      this.cpu.clearClockEvent(this.conversionCallback);
-    }
+    this.stop();
     // TODO: do ADC CPU cycles depend on clock scaling? 
     this.conversionCallback = this.cpu.addClockEvent(() => this.completeConversion(), cpuCycles);
   }
