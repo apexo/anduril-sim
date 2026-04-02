@@ -134,7 +134,7 @@ export class D3AA {
     this.portA = new AVRDxPort(this.cpu, 0x0400 + DATA_MEMORY_OFFSET, 0x00 + DATA_MEMORY_OFFSET, 8);
     this.portC = new AVRDxPort(this.cpu, 0x0440 + DATA_MEMORY_OFFSET, 0x08 + DATA_MEMORY_OFFSET, 29);
     this.portD = new AVRDxPort(this.cpu, 0x0460 + DATA_MEMORY_OFFSET, 0x0C + DATA_MEMORY_OFFSET, 24);
-    this.adc = new AVRDxADC(this.cpu, 0x0600 + DATA_MEMORY_OFFSET, 26, this.vref);
+    this.adc = new AVRDxADC(this.cpu, 0x0600 + DATA_MEMORY_OFFSET, 26, this.vref, this.slpctrl);
     this.dac = new AVRDxDAC(this.cpu, 0x06A0 + DATA_MEMORY_OFFSET);
     this.nvmctrl = new AVRDxNVMCTRL(this.cpu, 0x1000 + DATA_MEMORY_OFFSET, 0x1400 + DATA_MEMORY_OFFSET, 256, this.ccp);
     this.sigrow = new AVRDxSIGROW(this.cpu, 0x1104 + DATA_MEMORY_OFFSET);

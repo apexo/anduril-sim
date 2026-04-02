@@ -3,6 +3,7 @@
 
 import type { CPU, AVRInterruptConfig } from 'avr8js/cpu/cpu';
 import type { AVRDxVREF } from './avrdx-vref';
+import { SMODE_IDLE_gc, type AVRDxSLPCTRL } from './avrdx-slpctrl';
 
 const CTRLA    = 0x0000;
 const CTRLB    = 0x0001;
@@ -72,7 +73,7 @@ export class AVRDxADC {
 
   private readonly resrdyIrq: AVRInterruptConfig;
 
-  constructor(private cpu: CPU, private base: number, resrdyIrqNo: number, private vref: AVRDxVREF) {
+  constructor(private cpu: CPU, private base: number, resrdyIrqNo: number, private vref: AVRDxVREF, private slpctrl: AVRDxSLPCTRL) {
     this.resrdyIrq = {
       address: resrdyIrqNo * 2,  // vector 26, word addr 0x34
       flagRegister: base + INTFLAGS,
@@ -117,6 +118,10 @@ export class AVRDxADC {
     // RES registers - read only (but firmware can read them)
     cpu.writeHooks[base + RESL] = () => true; // ignore writes
     cpu.writeHooks[base + RESH] = () => true;
+
+    slpctrl.onSleep((mode) => {
+      if (mode !== SMODE_IDLE_gc) this.stop();
+    });
   }
 
   private stop() {
