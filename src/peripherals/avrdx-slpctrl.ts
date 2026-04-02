@@ -31,6 +31,10 @@ export class AVRDxSLPCTRL {
       this.handleSleep();
     };
 
+    cpu.onBeforeInterrupt = () => {
+      this.sleeping = null;
+    };
+
     this.callbacks = [];
   }
 
