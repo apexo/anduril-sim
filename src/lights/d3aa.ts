@@ -173,15 +173,17 @@ export class D3AA {
     while (this.cpu.cycles < target) {
       this.cpu.tick();
 
+      if (this.slpctrl.sleeping !== null) {
+        const sleepUntil = (this.cpu as any).nextClockEvent?.cycles ?? Infinity;
+        this.cpu.cycles = Math.min(target, sleepUntil);
+        continue;
+      }
+
       const before = this.cpu.cycles;
-      this.slpctrl.sleepUntil = 0;
       avrInstruction(this.cpu);
       const mult = this.clkctrl.cycleMultiplier;
       if (mult > 1) {
         this.cpu.cycles += (this.cpu.cycles - before) * (mult - 1);
-      }
-      if (this.slpctrl.sleepUntil > this.cpu.cycles && this.cpu.nextInterrupt < 0) {
-        this.cpu.cycles = Math.min(this.slpctrl.sleepUntil, target);
       }
     }
   }

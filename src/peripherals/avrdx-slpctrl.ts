@@ -15,7 +15,6 @@ export type SMODE = typeof SMODE_IDLE_gc | typeof SMODE_STDBY_gc | typeof SMODE_
 export type SleepCallback = (mode: SMODE) => void;
 
 export class AVRDxSLPCTRL {
-  sleepUntil: number = 0;
   sleeping: null | SMODE = null;
   callbacks: SleepCallback[];
   
@@ -44,11 +43,6 @@ export class AVRDxSLPCTRL {
 
     const mode = ctrla & SMODE_gm;
     this.sleeping = mode as SMODE;
-
-    const nextEvent = (this.cpu as any).nextClockEvent;
-    if (nextEvent) {
-      this.sleepUntil = nextEvent.cycles;
-    }
 
     for (const cb of this.callbacks) {
       cb(mode as SMODE);
